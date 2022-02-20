@@ -1,0 +1,9 @@
+
+.idea
+
+# notebooks
+.ipynb_checkpoints
+
+# data
+photo_storage
+sample
