@@ -7,3 +7,6 @@
 # data
 photo_storage
 sample
+
+# MacOS
+.DS_Store
