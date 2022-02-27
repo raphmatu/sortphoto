@@ -43,6 +43,5 @@ def setup_folders():
 
     photo_lake = os.path.join(FOLDER, 'sample')
     photo_storage = os.path.join(FOLDER, 'photo_storage')
-    photo_storage_manually = os.path.join(FOLDER, 'need_manual_sorting')
 
-    return photo_lake, photo_storage, photo_storage_manually
+    return photo_lake, photo_storage

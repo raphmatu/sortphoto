@@ -45,6 +45,8 @@ def list_and_date_photos(photo_lake):
 
     df_photo_metadata['date'] = list_photos_date
 
+    return df_photo_metadata
+
 
 def _get_photos_path(directory):
     list_photos_path = []

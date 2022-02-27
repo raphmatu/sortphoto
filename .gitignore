@@ -2,7 +2,7 @@
 .idea
 
 # notebooks
-.ipynb_checkpoints
+.ipynb_checkpoints/
 
 # data
 photo_storage
@@ -10,3 +10,6 @@ sample
 
 # MacOS
 .DS_Store
+
+# Python
+__pycache__/
