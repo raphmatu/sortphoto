@@ -1,4 +1,5 @@
 
+import os
 import logging
 
 from src.processing_folders import setup_folders, generate_time_tree, transfer_photos, list_and_identify_files, \
@@ -13,14 +14,18 @@ def main():
 
     logger = setup_logger()
 
-    file_lake, photo_storage = setup_folders()
+    fileBucket, photo_storage = setup_folders()
 
-    df = list_and_identify_files(file_lake=file_lake)
-    df_auto, df_manual = process_files(df)
-    df_auto, df_manual = generate_photos_new_path(df_auto, df_manual, photo_storage)
+    if os.path.exists(fileBucket):
+        df = list_and_identify_files(fileBucket=fileBucket)
+        df_auto, df_manual = process_files(df)
+        df_auto, df_manual = generate_photos_new_path(df_auto, df_manual, photo_storage)
 
-    generate_time_tree(df_auto, photo_storage)
-    transfer_photos(df_auto, df_manual)
+        generate_time_tree(df_auto, photo_storage)
+        transfer_photos(df_auto, df_manual)
+
+    else:
+        logger.info('"fileBucket" folder can not be found. Please create one')
 
 
 if __name__ == "__main__":

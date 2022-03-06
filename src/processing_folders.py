@@ -1,14 +1,15 @@
 
 import os
+import logging
 import subprocess
-from pathlib import Path
-
 import pandas as pd
 from tqdm import tqdm
+from pathlib import Path
 
-
+from src.conf import dictFormat, fileToIgnore
 from src.processing_photos import process_photos
 
+logger = logging.getLogger('logger')
 FOLDER = os.path.join(str(Path(__file__).parents[1]))
 
 
@@ -32,6 +33,7 @@ def separate_unsortable_files(df_photo, df_video, df_unknown):
 
     df_photo_manual = df_photo[df_photo['manual_sort']].reset_index(drop=True)
     df_photo_auto = df_photo[~df_photo['manual_sort']].reset_index(drop=True)
+    df_video = df_video.reset_index(drop=True)
 
     #df_video_manual = df_video[~df_video['manual_sort']].reset_index(drop=True)
     #df_video_auto = df_video[df_video['manual_sort']].reset_index(drop=True)
@@ -49,6 +51,12 @@ def transfer_photos(df_auto, df_manual):
         for from_path, to_path in tqdm(zip(df['from_path'], df['to_path']), total=len(df)):
             cmd = ['cp', '-r', from_path, to_path]
             subprocess.run(cmd)
+
+    sorted_files = len(df_auto)
+    unsorted_files = len(df_manual)
+    total_files = sorted_files + unsorted_files
+    logger.info('{}/{} files have been successfully sorted'.format(sorted_files, total_files))
+    logger.info('{}/{} files have been successfully sorted'.format(unsorted_files, total_files))
 
 
 def generate_time_tree(df_auto, photo_storage):
@@ -69,9 +77,9 @@ def generate_time_tree(df_auto, photo_storage):
     os.makedirs(os.path.join(photo_storage, 'to_sort_manually'), exist_ok=True)
 
 
-def list_and_identify_files(file_lake):
+def list_and_identify_files(fileBucket):
 
-    df = _get_filepath(directory=file_lake)
+    df = _get_filepath(directory=fileBucket)
     df['filetype'] = df['from_path'].map(lambda x: _return_video_or_photo(x))
 
     return df
@@ -82,25 +90,22 @@ def _get_filepath(directory):
     df = pd.DataFrame()
     list_files = []
     for (dirpath, dirnames, filenames) in os.walk(directory):
-        list_files += [os.path.join(dirpath, file) for file in filenames]
+        list_files += [os.path.join(dirpath, file) for file in filenames if file not in fileToIgnore]
 
     df['from_path'] = list_files
+
+    logger.info('{} files found. Start processing...'.format(len(list_files)))
 
     return df
 
 
 def _return_video_or_photo(filepath):
-    dict_format = {
-        'photo': ['.JPG', '.PNG', '.GIF', '.WEBP', '.TIFF', '.PSD', '.RAW', '.BMP', '.HEIF', '.INDD', '.JPEG', '.SVG',
-                  '.AI', '.EPS', '.PDF'],
-        'video': ['.WEBM', '.MPG', '.MP2', '.MPEG', '.MPE', '.MPV', '.OGG', '.MP4', '.M4P', '.M4V', '.AVI', '.WMV',
-                  '.MOV', '.QT', '.FLV', '.SWF', '.AVCHD']}
 
     extension = os.path.splitext(filepath)[1]
     extension_upper = extension.upper()
 
-    for filetype in dict_format.keys():
-        if extension_upper in dict_format[filetype]:
+    for filetype in dictFormat.keys():
+        if extension_upper in dictFormat[filetype]:
             return filetype
 
     return 'unknown_filetype'
@@ -108,7 +113,7 @@ def _return_video_or_photo(filepath):
 
 def setup_folders():
 
-    file_lake = os.path.join(FOLDER, 'file_lake')
+    fileBucket = os.path.join(FOLDER, 'fileBucket')
     photo_storage = os.path.join(FOLDER, 'photo_storage')
 
-    return file_lake, photo_storage
+    return fileBucket, photo_storage
