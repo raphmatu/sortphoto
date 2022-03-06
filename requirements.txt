@@ -1,0 +1,4 @@
+pandas==1.4.1
+numpy==1.21.2
+tqdm==4.62.3
+pillow==8.4.0
