@@ -1,11 +1,45 @@
 
 import os
-import calendar
 import subprocess
 from pathlib import Path
+
+import pandas as pd
 from tqdm import tqdm
 
+
+from src.processing_photos import process_photos
+
 FOLDER = os.path.join(str(Path(__file__).parents[1]))
+
+
+def process_files(df):
+
+    df_photo = df[df['filetype'] == 'photo'].reset_index(drop=True)
+    df_video = df[df['filetype'] == 'video'].reset_index(drop=True)
+    df_unknown = df[df['filetype'] == 'unknown_filetype'].reset_index(drop=True)
+
+    df_photo = process_photos(df_photo=df_photo)
+
+    # TODO : Implement video sorting script
+    # df_video = process_video(df_video=df_video)
+
+    df_auto, df_manual = separate_unsortable_files(df_photo, df_video, df_unknown)
+
+    return df_auto, df_manual
+
+
+def separate_unsortable_files(df_photo, df_video, df_unknown):
+
+    df_photo_manual = df_photo[df_photo['manual_sort']].reset_index(drop=True)
+    df_photo_auto = df_photo[~df_photo['manual_sort']].reset_index(drop=True)
+
+    #df_video_manual = df_video[~df_video['manual_sort']].reset_index(drop=True)
+    #df_video_auto = df_video[df_video['manual_sort']].reset_index(drop=True)
+
+    df_manual = pd.concat([df_unknown, df_photo_manual, df_video])
+    df_auto = df_photo_auto.copy()
+
+    return df_auto, df_manual
 
 
 def transfer_photos(df_auto, df_manual):
@@ -18,10 +52,6 @@ def transfer_photos(df_auto, df_manual):
 
 
 def generate_time_tree(df_auto, photo_storage):
-
-    df_auto['photo_year'] = df_auto['date'].dt.year
-    df_auto['photo_month'] = df_auto['date'].dt.month
-    df_auto['photo_month_name'] = df_auto['photo_month'].map(lambda x: calendar.month_abbr[x])
 
     df_photo_metadata_auto_grouped = df_auto.groupby('photo_year')['photo_month_name']\
                                             .agg(lambda x: list(set(x)))\
@@ -39,9 +69,46 @@ def generate_time_tree(df_auto, photo_storage):
     os.makedirs(os.path.join(photo_storage, 'to_sort_manually'), exist_ok=True)
 
 
+def list_and_identify_files(file_lake):
+
+    df = _get_filepath(directory=file_lake)
+    df['filetype'] = df['from_path'].map(lambda x: _return_video_or_photo(x))
+
+    return df
+
+
+def _get_filepath(directory):
+
+    df = pd.DataFrame()
+    list_files = []
+    for (dirpath, dirnames, filenames) in os.walk(directory):
+        list_files += [os.path.join(dirpath, file) for file in filenames]
+
+    df['from_path'] = list_files
+
+    return df
+
+
+def _return_video_or_photo(filepath):
+    dict_format = {
+        'photo': ['.JPG', '.PNG', '.GIF', '.WEBP', '.TIFF', '.PSD', '.RAW', '.BMP', '.HEIF', '.INDD', '.JPEG', '.SVG',
+                  '.AI', '.EPS', '.PDF'],
+        'video': ['.WEBM', '.MPG', '.MP2', '.MPEG', '.MPE', '.MPV', '.OGG', '.MP4', '.M4P', '.M4V', '.AVI', '.WMV',
+                  '.MOV', '.QT', '.FLV', '.SWF', '.AVCHD']}
+
+    extension = os.path.splitext(filepath)[1]
+    extension_upper = extension.upper()
+
+    for filetype in dict_format.keys():
+        if extension_upper in dict_format[filetype]:
+            return filetype
+
+    return 'unknown_filetype'
+
+
 def setup_folders():
 
-    photo_lake = os.path.join(FOLDER, 'sample')
+    file_lake = os.path.join(FOLDER, 'file_lake')
     photo_storage = os.path.join(FOLDER, 'photo_storage')
 
-    return photo_lake, photo_storage
+    return file_lake, photo_storage
