@@ -9,6 +9,9 @@ photo_storage
 sample
 fileBucket
 
+sorted_photos
+
+
 # MacOS
 .DS_Store
 

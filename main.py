@@ -13,7 +13,6 @@ logger = logging.getLogger('logger')
 def main():
 
     logger = setup_logger()
-
     fileBucket, photo_storage = setup_folders()
 
     if os.path.exists(fileBucket):

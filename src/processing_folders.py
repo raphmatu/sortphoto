@@ -114,6 +114,7 @@ def _return_video_or_photo(filepath):
 def setup_folders():
 
     fileBucket = os.path.join(FOLDER, 'fileBucket')
-    photo_storage = os.path.join(FOLDER, 'photo_storage')
+    photo_storage = os.path.join(FOLDER, 'sorted_photos')
+    os.makedirs(photo_storage, exist_ok=True)
 
     return fileBucket, photo_storage
