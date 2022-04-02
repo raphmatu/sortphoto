@@ -1,7 +1,7 @@
 
 import os
 import logging
-import subprocess
+import shutil
 import pandas as pd
 from tqdm import tqdm
 from pathlib import Path
@@ -49,14 +49,13 @@ def transfer_photos(df_auto, df_manual):
     for df in [df_auto, df_manual]:
 
         for from_path, to_path in tqdm(zip(df['from_path'], df['to_path']), total=len(df)):
-            cmd = ['cp', '-r', from_path, to_path]
-            subprocess.run(cmd)
+            shutil.copy(from_path, to_path)
 
     sorted_files = len(df_auto)
     unsorted_files = len(df_manual)
     total_files = sorted_files + unsorted_files
     logger.info('{}/{} files have been successfully sorted'.format(sorted_files, total_files))
-    logger.info('{}/{} files have been successfully sorted'.format(unsorted_files, total_files))
+    logger.info('{}/{} files have not been successfully sorted'.format(unsorted_files, total_files))
 
 
 def generate_time_tree(df_auto, photo_storage):
