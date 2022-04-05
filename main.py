@@ -1,5 +1,6 @@
 
 import os
+import parser
 import logging
 
 from src.processing_folders import setup_folders, generate_time_tree, transfer_photos, list_and_identify_files, \
@@ -10,10 +11,10 @@ from src.utils import setup_logger
 logger = logging.getLogger('logger')
 
 
-def main():
+def main(source_path, destination_path):
 
     logger = setup_logger()
-    fileBucket, photo_storage = setup_folders()
+    fileBucket, photo_storage = setup_folders(source_path, destination_path)
 
     if os.path.exists(fileBucket):
         df = list_and_identify_files(fileBucket=fileBucket)
@@ -28,4 +29,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--source_path', required=False, type=str,
+                        help="Indicate the path to the folder containing all the documents to sort")
+
+    parser.add_argument('--destination_path', required=False, type=str,
+                        help="Indicate the path to the folder when the sorted files will be moved")
+
+    execution_args = vars(parser.parse_args())
+    main(source_path=execution_args['source_path'], destination_path=execution_args['destination_path'])

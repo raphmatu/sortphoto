@@ -110,10 +110,23 @@ def _return_video_or_photo(filepath):
     return 'unknown_filetype'
 
 
-def setup_folders():
+def setup_folders(source_path=None, destination_path=None):
 
-    fileBucket = os.path.join(FOLDER, 'fileBucket')
-    photo_storage = os.path.join(FOLDER, 'sorted_photos')
-    os.makedirs(photo_storage, exist_ok=True)
+    if not source_path:
+        source_path = os.path.join(FOLDER, 'fileBucket')
 
-    return fileBucket, photo_storage
+    if not destination_path:
+        destination_path = os.path.join(FOLDER, 'sorted_photos')
+        os.makedirs(destination_path, exist_ok=True)
+
+    if source_path:
+        if not os.path.exists(source_path):
+            logger.info('{} can not be found')
+            exit()
+
+    if destination_path:
+        if not os.path.exists(destination_path):
+            logger.info('{} can not be found')
+            exit()
+
+    return source_path, destination_path
