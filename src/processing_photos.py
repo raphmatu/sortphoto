@@ -20,6 +20,7 @@ def generate_photos_new_path(df_auto, df_manual, photo_storage):
     df_auto['photo_year'] = df_auto['date'].dt.year
     df_auto['photo_month'] = df_auto['date'].dt.month
     df_auto['photo_month_name'] = df_auto['photo_month'].map(lambda x: calendar.month_abbr[x])
+    df_auto['photo_month_name'] = df_auto.apply(lambda x: '{0:02d}_{1}'.format(x['photo_month'], x['photo_month_name']), axis=1)
 
     df_auto['to_path'] = df_auto.apply(
         lambda x: os.path.join(photo_storage, str(x['photo_year']), x['photo_month_name']), axis=1)

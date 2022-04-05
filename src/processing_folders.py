@@ -55,7 +55,7 @@ def transfer_photos(df_auto, df_manual):
     unsorted_files = len(df_manual)
     total_files = sorted_files + unsorted_files
     logger.info('{}/{} files have been successfully sorted'.format(sorted_files, total_files))
-    logger.info('{}/{} files have not been successfully sorted'.format(unsorted_files, total_files))
+    logger.info('{}/{} files need to be sorted manually'.format(unsorted_files, total_files))
 
 
 def generate_time_tree(df_auto, photo_storage):
