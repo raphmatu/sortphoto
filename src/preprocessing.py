@@ -75,6 +75,8 @@ def generate_photos_new_path(df_auto, df_manual, photo_storage):
 
     df_manual['to_path'] = [os.path.join(photo_storage, 'to_sort_manually')] * len(df_manual)
 
+    df_auto = _synchronize_folders_from_location_file(df_auto)
+
     return df_auto, df_manual
 
 
@@ -152,6 +154,13 @@ def _return_video_or_photo(filepath):
             return filetype
 
     return 'unknown_filetype'
+
+
+def _synchronize_folders_from_location_file(df_auto):
+
+
+
+    return df_auto
 
 
 
