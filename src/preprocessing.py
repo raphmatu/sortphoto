@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 from PIL.ExifTags import TAGS
-
+from tqdm import tqdm
 
 from src.conf import dictFormat, fileToIgnore
 
@@ -84,13 +84,16 @@ def _extract_date_photos(df_photo):
 
     list_photos_date = []
 
-    for photo_path in df_photo['from_path']:
-        image = Image.open(photo_path)
-        exifdata = image.getexif()
-        if exifdata:
-            photo_date = _get_oldest_date_from_exif_data(exifdata=exifdata)
-            list_photos_date.append(photo_date)
-        else:
+    for photo_path in tqdm(df_photo['from_path']):
+        try:
+            image = Image.open(photo_path)
+            exifdata = image.getexif()
+            if exifdata:
+                photo_date = _get_oldest_date_from_exif_data(exifdata=exifdata)
+                list_photos_date.append(photo_date)
+            else:
+                list_photos_date.append(np.nan)
+        except:
             list_photos_date.append(np.nan)
 
     df_photo['date'] = list_photos_date
@@ -118,11 +121,13 @@ def _get_oldest_date_from_exif_data(exifdata):
 
             list_date[tag] = date_photo
 
+    list_date = {k: v for k, v in list_date.items() if v != "0000:00:00 00:00:00"}
     earliest_date = _get_oldest_date(list_date)
     return earliest_date
 
 
 def _get_oldest_date(list_date):
+
     df_dates = pd.DataFrame(list_date.values(), columns=['date'])
     df_dates['date'] = pd.to_datetime(df_dates['date'], format="%Y:%m:%d %H:%M:%S")
     earliest_date = df_dates['date'].min()

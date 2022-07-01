@@ -9,6 +9,9 @@ from src.setup import setup_logger, setup_folders
 
 def main(source_path, destination_path):
 
+    source_path = "R://Raph//Perso//photos_iphone_20220606"
+    destination_path = "E://Raph//Photos_chronologie"
+
     setup_logger()
     source_path, destination_path = setup_folders(source_path, destination_path)
 
