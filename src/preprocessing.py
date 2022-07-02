@@ -3,6 +3,7 @@ import calendar
 import logging
 import os
 
+from src.conf import FOLDER
 
 import numpy as np
 import pandas as pd
@@ -20,7 +21,7 @@ def extract_information_from_files(source_path, destination_path):
     df_photo, df_video, df_unknown = list_and_identify_files(source_path)
     df_photo = process_photos(df_photo=df_photo)
 
-    # TODO : Implement video sorting script
+    # TODO: Implement video sorting script
     # df_video = process_video(df_video=df_video)
 
     df_auto, df_manual = separate_unsortable_files(df_photo, df_video, df_unknown)
@@ -75,7 +76,7 @@ def generate_photos_new_path(df_auto, df_manual, photo_storage):
 
     df_manual['to_path'] = [os.path.join(photo_storage, 'to_sort_manually')] * len(df_manual)
 
-    #df_auto = _synchronize_folders_from_location_file(df_auto)
+    df_auto = _synchronize_folders_from_location_file(df_auto)
 
     return df_auto, df_manual
 
@@ -163,9 +164,40 @@ def _return_video_or_photo(filepath):
 
 def _synchronize_folders_from_location_file(df_auto):
 
+    try:
+        df_locations = pd.read_csv(os.path.join(FOLDER, 'locations.csv'), sep=';')
+    except:
+        logger.info('No locations.csv file found')
+        return df_auto
 
+    df_locations['start_date (YYYY-MM-DD)'] = pd.to_datetime(df_locations['start_date (YYYY-MM-DD)'])
+    df_locations['end_date (YYYY-MM-DD)'] = pd.to_datetime(df_locations['end_date (YYYY-MM-DD)'])
+
+    df_auto['location'] = df_auto['date'].map(lambda x: _extract_location(x, df_locations))
+    df_auto['to_path'] = df_auto.apply(lambda x: _add_location_to_path(x['to_path'], x['location']), axis=1)
+    df_auto['photo_month_name'] = df_auto.apply(lambda x: _add_location_to_path(x['photo_month_name'], x['location']), axis=1)
 
     return df_auto
+
+
+def _extract_location(date, df):
+    df_time_window = df[(df['start_date (YYYY-MM-DD)'] < date) & (df['end_date (YYYY-MM-DD)'] > date)].reset_index()
+
+    if len(df_time_window) > 1:
+        logger.info('Several dates are overlapping')
+        exit()
+    elif len(df_time_window) == 0:
+        return np.nan
+
+    return df_time_window['locations'].item()
+
+
+def _add_location_to_path(path, location):
+    if not pd.isna(location):
+        new_path = '{}_{}'.format(path, location)
+        return new_path
+    return path
+
 
 
 

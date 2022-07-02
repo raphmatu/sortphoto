@@ -9,13 +9,14 @@ from src.setup import setup_logger, setup_folders
 
 def main(source_path, destination_path):
 
-    source_path = "R://Raph//Perso//photos_iphone_20220606"
-    destination_path = "E://Raph//Photos_chronologie"
+    #source_path = "R://Raph//Perso//photos_iphone_20220606"
+    #destination_path = "E://Raph//Photos_chronologie"
 
     setup_logger()
     source_path, destination_path = setup_folders(source_path, destination_path)
 
     df_auto, df_manual = extract_information_from_files(source_path, destination_path)
+    # check_old_folders(destination_path) # todo: ensure old files are transfered in locations if needed
     generate_time_tree(df_auto, destination_path)
     transfer_photos(df_auto, df_manual)
 

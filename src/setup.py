@@ -2,11 +2,9 @@
 import logging
 import os
 import sys
-from pathlib import Path
+from src.conf import FOLDER
 
 logger = logging.getLogger('logger')
-
-FOLDER = os.path.join(str(Path(__file__).parents[1]))
 
 
 def setup_logger():
@@ -37,12 +35,12 @@ def setup_folders(source_path=None, destination_path=None):
 
     if source_path:
         if not os.path.exists(source_path):
-            logger.info('{} can not be found')
+            logger.info('{} can not be found'.format(source_path))
             exit()
 
     if destination_path:
         if not os.path.exists(destination_path):
-            logger.info('{} can not be found')
+            logger.info('{} can not be found'.format(source_path))
             exit()
 
     return source_path, destination_path
