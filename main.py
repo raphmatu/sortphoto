@@ -3,7 +3,7 @@ import argparse
 
 from src.preprocessing import extract_information_from_files
 from src.transfer_files import transfer_photos
-from src.generate_timeline_folders import generate_time_tree
+from src.generate_timeline_folders import generate_time_tree, check_old_folders
 from src.setup import setup_logger, setup_folders
 
 
@@ -16,7 +16,7 @@ def main(source_path, destination_path):
     source_path, destination_path = setup_folders(source_path, destination_path)
 
     df_auto, df_manual = extract_information_from_files(source_path, destination_path)
-    # check_old_folders(destination_path) # todo: ensure old files are transfered in locations if needed
+    check_old_folders(destination_path)
     generate_time_tree(df_auto, destination_path)
     transfer_photos(df_auto, df_manual)
 

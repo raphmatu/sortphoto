@@ -19,7 +19,8 @@ logger = logging.getLogger('logger')
 def extract_information_from_files(source_path, destination_path):
 
     df_photo, df_video, df_unknown = list_and_identify_files(source_path)
-    df_photo = process_photos(df_photo=df_photo)
+    df_photo = extract_date_photos(df_photo)
+    df_photo['manual_sort'] = df_photo['date'].map(lambda x: pd.isna(x))
 
     # TODO: Implement video sorting script
     # df_video = process_video(df_video=df_video)
@@ -39,14 +40,6 @@ def list_and_identify_files(source_path):
     df_unknown = df[df['filetype'] == 'unknown_filetype'].reset_index(drop=True)
 
     return df_photo, df_video, df_unknown
-
-
-def process_photos(df_photo):
-
-    df_photo = _extract_date_photos(df_photo)
-    df_photo['manual_sort'] = df_photo['date'].map(lambda x: pd.isna(x))
-
-    return df_photo
 
 
 def separate_unsortable_files(df_photo, df_video, df_unknown):
@@ -81,20 +74,22 @@ def generate_photos_new_path(df_auto, df_manual, photo_storage):
     return df_auto, df_manual
 
 
-def _extract_date_photos(df_photo):
+def extract_date_photos(df_photo):
 
     list_photos_date = []
 
     for photo_path in tqdm(df_photo['from_path']):
         try:
             image = Image.open(photo_path)
-            exifdata = image.getexif()
-            if exifdata:
-                photo_date = _get_oldest_date_from_exif_data(exifdata=exifdata)
-                list_photos_date.append(photo_date)
-            else:
-                list_photos_date.append(np.nan)
         except:
+            list_photos_date.append(np.nan)
+            continue
+
+        exifdata = image.getexif()
+        if exifdata:
+            photo_date = _get_oldest_date_from_exif_data(exifdata=exifdata)
+            list_photos_date.append(photo_date)
+        else:
             list_photos_date.append(np.nan)
 
     df_photo['date'] = list_photos_date
@@ -137,6 +132,11 @@ def _get_oldest_date(list_date):
 
 
 def _get_filepath(directory):
+    """
+    List all files paths from directory arg and return a dataframe with 1 column 'from_path' containing all of them
+    :param str directory:
+    :return:
+    """
 
     df = pd.DataFrame()
     list_files = []
