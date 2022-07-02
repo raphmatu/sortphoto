@@ -17,6 +17,15 @@ logger = logging.getLogger('logger')
 
 
 def extract_information_from_files(source_path, destination_path):
+    """
+    This function executes several main steps :
+    - list all available files in source path directory
+    - identify photos, videos and unknown files among them
+    - generate destination path for the photos to be transfered
+    :param source_path: directory containing photos to be sorted
+    :param destination_path: directory containing sorted photos
+    :return:
+    """
 
     df_photo, df_video, df_unknown = list_and_identify_files(source_path)
     df_photo = extract_date_photos(df_photo)
@@ -32,6 +41,12 @@ def extract_information_from_files(source_path, destination_path):
 
 
 def list_and_identify_files(source_path):
+    """
+    List, identify and separate files as photos, videos or unknown type. It returns 3 differents dataframe according to
+    the file type
+    :param source_path:
+    :return:
+    """
     df = _get_filepath(directory=source_path)
     df['filetype'] = df['from_path'].map(lambda x: _return_video_or_photo(x))
 
@@ -43,6 +58,15 @@ def list_and_identify_files(source_path):
 
 
 def separate_unsortable_files(df_photo, df_video, df_unknown):
+    """
+    This function separates photos and videos (TBI) in two dataframe : auto and manual.
+    auto dataframe contains photos that can be automatically sorted
+    manual dataframe contains photos that will need to be sorted manually
+    :param df_photo:
+    :param df_video:
+    :param df_unknown:
+    :return:
+    """
 
     df_photo_manual = df_photo[df_photo['manual_sort']].reset_index(drop=True)
     df_photo_auto = df_photo[~df_photo['manual_sort']].reset_index(drop=True)
@@ -58,6 +82,13 @@ def separate_unsortable_files(df_photo, df_video, df_unknown):
 
 
 def generate_photos_new_path(df_auto, df_manual, photo_storage):
+    """
+    Generates the destination path for each photos according to the date and the location file
+    :param df_auto:
+    :param df_manual:
+    :param photo_storage:
+    :return:
+    """
 
     df_auto['photo_year'] = df_auto['date'].dt.year
     df_auto['photo_month'] = df_auto['date'].dt.month
@@ -75,8 +106,16 @@ def generate_photos_new_path(df_auto, df_manual, photo_storage):
 
 
 def extract_date_photos(df_photo):
+    """
+    This function opens each photo and extract the oldest date found in metadata. It returns the 'df_photo' dataframe
+    with one more column containing the photo oldest date.
+    :param df_photo: dataframe containing 1 column 'from_path' with all files paths
+    :return:
+    """
 
     list_photos_date = []
+
+    logger.info('Start date extraction from photos...')
 
     for photo_path in tqdm(df_photo['from_path']):
         try:
@@ -151,6 +190,11 @@ def _get_filepath(directory):
 
 
 def _return_video_or_photo(filepath):
+    """
+    Check the extension of each file and classify them as photo, video or unknown
+    :param str filepath:
+    :return:
+    """
 
     extension = os.path.splitext(filepath)[1]
     extension_upper = extension.upper()
@@ -163,6 +207,11 @@ def _return_video_or_photo(filepath):
 
 
 def _synchronize_folders_from_location_file(df_auto):
+    """
+    Identify locations from locations.csv file and modify destination folder file path if needed
+    :param df_auto:
+    :return:
+    """
 
     try:
         df_locations = pd.read_csv(os.path.join(FOLDER, 'locations.csv'), sep=';')
